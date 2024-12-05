@@ -349,15 +349,15 @@ def prop_tot(
                 # KFS begin
                 if OMMP:
                     # static nuclear contribution:
-                    res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
+                    res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][select]
                     # QM-MM vdW potential:
-                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
+                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[select]
                     if pola:
                         # Polarization contribution from the potential of the IPD's at the nuclei
-                        res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
+                        res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][select]
                 # KFS end
             if e_solvent is not None:
-                res[CompKeys.solvent] = e_solvent[atom_idx]
+                res[CompKeys.solvent] = e_solvent[select]
             # additional xc energy contribution
             if dft_calc and xc_params is not None:
                 # atom-specific rho
