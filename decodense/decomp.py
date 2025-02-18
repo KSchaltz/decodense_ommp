@@ -57,6 +57,7 @@ class DecompCls(object):
         "writename",
         "verbose",
         "res",
+        "unit",
         "charge_atom",
         "dist",
         "weights",

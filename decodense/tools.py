@@ -223,6 +223,7 @@ def write_rdm1(
         [make_rdm1(mo_coeff[0], mo_occ[0]), make_rdm1(mo_coeff[1], mo_occ[1])]
     )
     # loop over atoms
+    rdm1_atom_dict = {}
     for a in range(mol.natm):
         # atom-specific rdm1
         rdm1_atom = np.zeros_like(rdm1_tot)
