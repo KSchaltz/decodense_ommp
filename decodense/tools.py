@@ -204,7 +204,7 @@ def write_rdm1(
     part: str,
     mo_coeff: Tuple[np.ndarray, np.ndarray],
     mo_occ: Tuple[np.ndarray, np.ndarray],
-    fmt: str,
+    fmt: str, writename: str,
     weights: List[np.ndarray],
     suffix: str = "",
 ) -> None:
@@ -244,11 +244,14 @@ def write_rdm1(
                 np.sum(rdm1_atom, axis=0),
             )
         else:
-            # write rdm1_atom as numpy file
-            np.save(
-                f"atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1{suffix:}.npy",
-                np.sum(rdm1_atom, axis=0),
-            )
+            # save rdm1_atom to dictionary
+            rdm1_atom_dict[f"atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1{suffix:}"] = rdm1_atom
+    # write rdm1_atom dictionary to npz file
+    if fmt == "numpy":
+        if not writename == "": 
+            np.savez(f"{writename}.npz",**rdm1_atom_dict)
+        else: 
+            np.savez(f"rdm1_atom_dict.npz",**rdm1_atom_dict)
 
 
 def res_add(res_a, res_b):

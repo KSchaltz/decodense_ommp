@@ -85,6 +85,6 @@ def main(
 
     # write rdm1s
     if decomp.write != "":
-        write_rdm1(mol, decomp.part, mo_coeff, mo_occ, decomp.write, weights)
+        write_rdm1(mol, decomp.part, mo_coeff, mo_occ, decomp.write, decomp.writename, weights)
 
     return fmt(mol, decomp.res, decomp.unit, decomp.ndo)

@@ -116,14 +116,21 @@ def prop_tot(
         if isinstance(mol, pbc_gto.Cell):
             prop_nuc_rep = ewald_e_nuc(mol)
         else:
-            prop_nuc_rep = _e_nuc(pmol, mm_mol)
+            prop_nuc_rep= _e_nuc(pmol)
     elif prop_type == "dipole":
         prop_nuc_rep = _dip_nuc(pmol, gauge_origin)
 
     # core hamiltonian
     kin, nuc, sub_nuc, mm_pot = _h_core(mol, mm_mol, mf)
 
-    #KFS begin
+    #KFS begin    
+    # Nuclei interaction with pointcharges of a possible solvent
+    nuc_solv = np.zeros(len(mol.atom))
+    if mm_mol is not None:
+        for j in range(mol.natm):
+            q2, r2 = mol.atom_charges()[j], mol.atom_coords()[j]
+            r = lib.norm(r2 - mm_mol.atom_coords(), axis=1)
+            nuc_solv[j] = q2 * np.sum(mm_mol.atom_charges() / r)
     # OpenMMPol calculation:
     OMMP = False
     pola = False
@@ -135,7 +142,7 @@ def prop_tot(
     #  IPD contribution to the Fock Matrix
     if hasattr(mf, 'v_mmpol_d'): 
         pola = True
-        mm_pot += 0.5 * getattr(mf, 'v_mmpol_d', None)
+        mm_pot2 = 0.5 * getattr(mf, 'v_mmpol_d', None)   # mm_pot2 is introduced to separate solvent contributions
     # KFS end
 
     # fock potential
@@ -270,6 +277,7 @@ def prop_tot(
             )
             if mm_pot is not None:
                 res[CompKeys.solvent] = _trace(mm_pot, np.sum(rdm1_atom, axis=0))
+                res[CompKeys.solvent] += nuc_solv[atom_idx]
                 # KFS begin
                 if OMMP:
                     # static nuclear contribution:
@@ -277,6 +285,7 @@ def prop_tot(
                     # QM-MM vdW potential:
                     res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
                     if pola:
+                        res[CompKeys.solvent] += _trace(mm_pot2, np.sum(rdm1_atom, axis=0))
                         # Polarization contribution from the potential of the IPD's at the nuclei
                         res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
                 # KFS end
@@ -305,6 +314,15 @@ def prop_tot(
         # sum up electronic contributions
         if prop_type == "energy":
             res[CompKeys.el] = sum(res.values())
+        # KFS begin
+        if OMMP:
+            res.update({"h1e": _trace(mm_pot, np.sum(rdm1_atom, axis=0))})
+            res.update({"pot_static": [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]})
+            res.update({"vdw": mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]})
+            if pola:
+                res.update({"v_mmpol_d": _trace(mm_pot2, np.sum(rdm1_atom, axis=0))})
+                res.update({"pot_pol": 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]})        
+        # KFS end      
         return res
 
     def prop_eda(atom_idx: int) -> Dict[str, Any]:
@@ -346,18 +364,22 @@ def prop_tot(
                 res[CompKeys.solvent] = _trace(
                     mm_pot[select], np.sum(rdm1_tot, axis=0)[select]
                     )
+                res[CompKeys.solvent] += nuc_solv[atom_idx]
                 # KFS begin
                 if OMMP:
                     # static nuclear contribution:
-                    res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][select]
+                    res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
                     # QM-MM vdW potential:
-                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[select]
+                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
                     if pola:
+                        res[CompKeys.solvent] += _trace(
+                        mm_pot2[select], np.sum(rdm1_tot, axis=0)[select]
+                        )
                         # Polarization contribution from the potential of the IPD's at the nuclei
-                        res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][select]
+                        res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
                 # KFS end
             if e_solvent is not None:
-                res[CompKeys.solvent] = e_solvent[select]
+                res[CompKeys.solvent] = e_solvent[atom_idx]
             # additional xc energy contribution
             if dft_calc and xc_params is not None:
                 # atom-specific rho
@@ -397,6 +419,15 @@ def prop_tot(
         # sum up electronic contributions
         if prop_type == "energy":
             res[CompKeys.el] = sum(res.values())
+        # KFS begin
+        if OMMP:
+            res.update({"h1e": _trace(mm_pot, np.sum(rdm1_tot, axis=0))})
+            res.update({"pot_static": [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]})
+            res.update({"vdw": mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]})
+            if pola:
+                res.update({"v_mmpol_d": _trace(mm_pot2, np.sum(rdm1_tot, axis=0))})
+                res.update({"pot_pol": 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]})
+        # KFS end
         return res
 
     def prop_orb(spin_idx: int, orb_idx: int) -> Dict[str, Any]:
@@ -507,7 +538,7 @@ def prop_tot(
         }
 
 
-def _e_nuc(mol: gto.Mole, mm_mol: Optional[gto.Mole]) -> np.ndarray:
+def _e_nuc(mol: gto.Mole) -> np.ndarray:
     """
     this function returns the nuclear repulsion energy
     """
@@ -518,14 +549,6 @@ def _e_nuc(mol: gto.Mole, mm_mol: Optional[gto.Mole]) -> np.ndarray:
     dist = gto.inter_distance(mol)
     dist[np.diag_indices_from(dist)] = 1e200
     e_nuc = contract("i,ij,j->i", charges, 1.0 / dist, charges) * 0.5
-    # possible interaction with mm sites
-    if mm_mol is not None:
-        mm_coords = mm_mol.atom_coords()
-        mm_charges = mm_mol.atom_charges()
-        for j in range(mol.natm):
-            q2, r2 = charges[j], coords[j]
-            r = lib.norm(r2 - mm_coords, axis=1)
-            e_nuc[j] += q2 * np.sum(mm_charges / r)
     return e_nuc
 
 

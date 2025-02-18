@@ -54,8 +54,8 @@ class DecompCls(object):
         "gauge_origin",
         "prop",
         "write",
+        "writename",
         "verbose",
-        "unit",
         "res",
         "charge_atom",
         "dist",
@@ -75,6 +75,7 @@ class DecompCls(object):
         gauge_origin: np.ndarray = np.zeros(3, dtype=np.float64),
         prop: str = "energy",
         write: str = "",
+        writename: str = "",
         verbose: int = 0,
         unit: str = "au",
     ) -> None:
@@ -92,6 +93,7 @@ class DecompCls(object):
         self.gauge_origin = gauge_origin
         self.prop = prop
         self.write = write
+        self.writename = writename
         self.verbose = verbose
         self.unit = unit
         # set internal defaults
@@ -164,6 +166,7 @@ def sanity_check(
     ], "invalid property. valid choices: `energy` (default) and `dipole`"
     # write
     assert isinstance(decomp.write, str), "invalid write format argument. must be a str"
+    assert isinstance(decomp.writename, str), "invalid writename format argument. must be a str"
     assert decomp.write in [
         "",
         "cube",
