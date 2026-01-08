@@ -116,7 +116,7 @@ def prop_tot(
         if isinstance(mol, pbc_gto.Cell):
             prop_nuc_rep = ewald_e_nuc(mol)
         else:
-            prop_nuc_rep= _e_nuc(pmol)
+            prop_nuc_rep = _e_nuc(pmol)
     elif prop_type == "dipole":
         prop_nuc_rep = _dip_nuc(pmol, gauge_origin)
 
@@ -309,7 +309,7 @@ def prop_tot(
             res[CompKeys.el] = -_trace(ao_dip, np.sum(rdm1_atom, axis=0))
         # sum up electronic contributions
         if prop_type == "energy":
-            res[CompKeys.el] = sum(res.values())    
+            res[CompKeys.el] = sum(res.values())
         return res
 
     def prop_eda(atom_idx: int) -> Dict[str, Any]:
@@ -442,7 +442,7 @@ def prop_tot(
                         xc_params.ao_value_nlc, rdm1_orb, "GGA"
                     )
                     res[CompKeys.xc_nlc] = _e_xc(
-                        xc_params.eps_xc_nlc, xc_params.grid_weights_nlc, rho_atom_vv10
+                        xc_params.eps_xc_nlc, xc_params.grid_weights_nlc, rho_orb_vv10
                     )
         elif prop_type == "dipole":
             res[CompKeys.el] = -_trace(ao_dip, rdm1_orb)
