@@ -204,7 +204,8 @@ def write_rdm1(
     part: str,
     mo_coeff: Tuple[np.ndarray, np.ndarray],
     mo_occ: Tuple[np.ndarray, np.ndarray],
-    fmt: str, writename: str,
+    fmt: str, 
+    writename: str,
     weights: List[np.ndarray],
     suffix: str = "",
 ) -> None:
