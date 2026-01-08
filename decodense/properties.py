@@ -122,8 +122,7 @@ def prop_tot(
 
     # core hamiltonian
     kin, nuc, sub_nuc, mm_pot = _h_core(mol, mm_mol, mf)
-
-    #KFS begin    
+  
     # Nuclei interaction with pointcharges of a possible solvent
     nuc_solv = np.zeros(len(mol.atom))
     if mm_mol is not None:
@@ -142,7 +141,6 @@ def prop_tot(
     if hasattr(mf, 'v_mmpol_d'): 
         pola = True
         mm_pot_ipd = 0.5 * getattr(mf, 'v_mmpol_d', None)   # mm_pot_ipd is introduced to separate solvent contributions
-    # KFS end
 
     # fock potential
     if hasattr(mf, "vj"):
@@ -277,7 +275,6 @@ def prop_tot(
             if mm_pot is not None:
                 res[CompKeys.solvent] = _trace(mm_pot, np.sum(rdm1_atom, axis=0))
                 res[CompKeys.solvent] += nuc_solv[atom_idx]
-                # KFS begin
                 if OMMP:
                     # static nuclear contribution:
                     res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
@@ -287,7 +284,6 @@ def prop_tot(
                         res[CompKeys.solvent] += _trace(mm_pot_ipd, np.sum(rdm1_atom, axis=0))
                         # Polarization contribution from the potential of the IPD's at the nuclei
                         res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
-                # KFS end
             if e_solvent is not None:
                 res[CompKeys.solvent] = e_solvent[atom_idx]
             # additional xc energy contribution
@@ -355,7 +351,6 @@ def prop_tot(
                     mm_pot[select], np.sum(rdm1_tot, axis=0)[select]
                     )
                 res[CompKeys.solvent] += nuc_solv[atom_idx]
-                # KFS begin
                 if OMMP:
                     # static nuclear contribution:
                     res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
@@ -367,7 +362,6 @@ def prop_tot(
                         )
                         # Polarization contribution from the potential of the IPD's at the nuclei
                         res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
-                # KFS end
             if e_solvent is not None:
                 res[CompKeys.solvent] = e_solvent[atom_idx]
             # additional xc energy contribution
