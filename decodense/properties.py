@@ -130,17 +130,18 @@ def prop_tot(
             q2, r2 = mol.atom_charges()[j], mol.atom_coords()[j]
             r = lib.norm(r2 - mm_mol.atom_coords(), axis=1)
             nuc_solv[j] = q2 * np.sum(mm_mol.atom_charges() / r)
+    
     # OpenMMPol calculation:
-    OMMP = False
-    pola = False
+    ommp = False
+    ommp_pola = False
     # Extra static contribution to h_core
     if hasattr(mf, 'h1e_mmpol'): #
-        OMMP = True
+        ommp = True
         mm_pot = getattr(mf, 'h1e_mmpol', None).copy()                
     #  IPD contribution to the Fock Matrix
     if hasattr(mf, 'v_mmpol_d'): 
-        pola = True
-        mm_pot_ipd = 0.5 * getattr(mf, 'v_mmpol_d', None)   # mm_pot_ipd is introduced to separate solvent contributions
+        ommp_pola = True
+        mm_pot_ipd = 0.5 * getattr(mf, 'v_mmpol_d', None)
 
     # fock potential
     if hasattr(mf, "vj"):
@@ -275,12 +276,12 @@ def prop_tot(
             if mm_pot is not None:
                 res[CompKeys.solvent] = _trace(mm_pot, np.sum(rdm1_atom, axis=0))
                 res[CompKeys.solvent] += nuc_solv[atom_idx]
-                if OMMP:
+                if ommp:
                     # static nuclear contribution:
                     res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
                     # QM-MM vdW potential:
                     res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
-                    if pola:
+                    if ommp_pola:
                         res[CompKeys.solvent] += _trace(mm_pot_ipd, np.sum(rdm1_atom, axis=0))
                         # Polarization contribution from the potential of the IPD's at the nuclei
                         res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
@@ -351,12 +352,12 @@ def prop_tot(
                     mm_pot[select], np.sum(rdm1_tot, axis=0)[select]
                     )
                 res[CompKeys.solvent] += nuc_solv[atom_idx]
-                if OMMP:
+                if ommp:
                     # static nuclear contribution:
                     res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
                     # QM-MM vdW potential:
                     res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
-                    if pola:
+                    if ommp_pola:
                         res[CompKeys.solvent] += _trace(
                         mm_pot_ipd[select], np.sum(rdm1_tot, axis=0)[select]
                         )
