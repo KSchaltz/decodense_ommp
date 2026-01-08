@@ -28,6 +28,7 @@ class CompKeys:
     nuc_att_loc = "E_ne (2)"
     nuc_att = "E_ne"
     xc = "XC"
+    xc_nlc = "xc_nlc"
     struct = "Struct."
     el = "Elect."
     tot = "Total"

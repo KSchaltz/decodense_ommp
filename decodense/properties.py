@@ -137,12 +137,11 @@ def prop_tot(
     # Extra static contribution to h_core
     if hasattr(mf, 'h1e_mmpol'): #
         OMMP = True
-        mm_pot = getattr(mf, 'h1e_mmpol', None).copy()
-        #print(mf.h1e_mmpol)           
+        mm_pot = getattr(mf, 'h1e_mmpol', None).copy()                
     #  IPD contribution to the Fock Matrix
     if hasattr(mf, 'v_mmpol_d'): 
         pola = True
-        mm_pot2 = 0.5 * getattr(mf, 'v_mmpol_d', None)   # mm_pot2 is introduced to separate solvent contributions
+        mm_pot_ipd = 0.5 * getattr(mf, 'v_mmpol_d', None)   # mm_pot_ipd is introduced to separate solvent contributions
     # KFS end
 
     # fock potential
@@ -285,7 +284,7 @@ def prop_tot(
                     # QM-MM vdW potential:
                     res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
                     if pola:
-                        res[CompKeys.solvent] += _trace(mm_pot2, np.sum(rdm1_atom, axis=0))
+                        res[CompKeys.solvent] += _trace(mm_pot_ipd, np.sum(rdm1_atom, axis=0))
                         # Polarization contribution from the potential of the IPD's at the nuclei
                         res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
                 # KFS end
@@ -306,23 +305,14 @@ def prop_tot(
                     _, _, rho_atom_vv10 = _make_rho(
                         xc_params.ao_value_nlc, np.sum(rdm1_atom, axis=0), "GGA"
                     )
-                    res[CompKeys.xc] += _e_xc(
+                    res[CompKeys.xc_nlc] = _e_xc(
                         xc_params.eps_xc_nlc, xc_params.grid_weights_nlc, rho_atom_vv10
                     )
         elif prop_type == "dipole":
             res[CompKeys.el] = -_trace(ao_dip, np.sum(rdm1_atom, axis=0))
         # sum up electronic contributions
         if prop_type == "energy":
-            res[CompKeys.el] = sum(res.values())
-        # KFS begin
-        if OMMP:
-            res.update({"h1e": _trace(mm_pot, np.sum(rdm1_atom, axis=0))})
-            res.update({"pot_static": [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]})
-            res.update({"vdw": mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]})
-            if pola:
-                res.update({"v_mmpol_d": _trace(mm_pot2, np.sum(rdm1_atom, axis=0))})
-                res.update({"pot_pol": 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]})        
-        # KFS end      
+            res[CompKeys.el] = sum(res.values())    
         return res
 
     def prop_eda(atom_idx: int) -> Dict[str, Any]:
@@ -373,7 +363,7 @@ def prop_tot(
                     res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
                     if pola:
                         res[CompKeys.solvent] += _trace(
-                        mm_pot2[select], np.sum(rdm1_tot, axis=0)[select]
+                        mm_pot_ipd[select], np.sum(rdm1_tot, axis=0)[select]
                         )
                         # Polarization contribution from the potential of the IPD's at the nuclei
                         res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
@@ -409,7 +399,7 @@ def prop_tot(
                         xc_params.ao_value_nlc[:, :, select],
                         "GGA",
                     )
-                    res[CompKeys.xc] += _e_xc(
+                    res[CompKeys.xc_nlc] = _e_xc(
                         xc_params.eps_xc_nlc, xc_params.grid_weights_nlc, rho_atom_vv10
                     )
         elif prop_type == "dipole":
@@ -419,15 +409,6 @@ def prop_tot(
         # sum up electronic contributions
         if prop_type == "energy":
             res[CompKeys.el] = sum(res.values())
-        # KFS begin
-        if OMMP:
-            res.update({"h1e": _trace(mm_pot, np.sum(rdm1_tot, axis=0))})
-            res.update({"pot_static": [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]})
-            res.update({"vdw": mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]})
-            if pola:
-                res.update({"v_mmpol_d": _trace(mm_pot2, np.sum(rdm1_tot, axis=0))})
-                res.update({"pot_pol": 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]})
-        # KFS end
         return res
 
     def prop_orb(spin_idx: int, orb_idx: int) -> Dict[str, Any]:
@@ -465,8 +446,8 @@ def prop_tot(
                     _, _, rho_orb_vv10 = _make_rho(
                         xc_params.ao_value_nlc, rdm1_orb, "GGA"
                     )
-                    res[CompKeys.xc] += _e_xc(
-                        xc_params.eps_xc_nlc, xc_params.grid_weights_nlc, rho_orb_vv10
+                    res[CompKeys.xc_nlc] = _e_xc(
+                        xc_params.eps_xc_nlc, xc_params.grid_weights_nlc, rho_atom_vv10
                     )
         elif prop_type == "dipole":
             res[CompKeys.el] = -_trace(ao_dip, rdm1_orb)
