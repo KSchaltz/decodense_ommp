@@ -207,7 +207,6 @@ def write_rdm1(
     fmt: str, 
     writename: str,
     weights: List[np.ndarray],
-    suffix: str = "",
 ) -> None:
     """
     this function writes a 1-RDM as a numpy or cube (default) file
@@ -242,12 +241,12 @@ def write_rdm1(
             # write rdm1_atom as cube file
             pyscf_tools.cubegen.density(
                 mol,
-                f"atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1{suffix:}.cube",
+                f"{writename}{"_" if not writename == "" else ""}atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1.cube",
                 np.sum(rdm1_atom, axis=0),
             )
         else:
             # save rdm1_atom to dictionary
-            rdm1_atom_dict[f"atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1{suffix:}"] = rdm1_atom
+            rdm1_atom_dict[f"atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1"] = rdm1_atom
     # write rdm1_atom dictionary to npz file
     if fmt == "numpy":
         if not writename == "": 
