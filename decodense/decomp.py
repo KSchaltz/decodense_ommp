@@ -28,7 +28,7 @@ class CompKeys:
     nuc_att_loc = "E_ne (2)"
     nuc_att = "E_ne"
     xc = "XC"
-    xc_nlc = "xc_nlc"
+    xc_nlc = "XC_nlc"
     struct = "Struct."
     el = "Elect."
     tot = "Total"
@@ -168,7 +168,9 @@ def sanity_check(
     ], "invalid property. valid choices: `energy` (default) and `dipole`"
     # write
     assert isinstance(decomp.write, str), "invalid write format argument. must be a str"
-    assert isinstance(decomp.writename, str), "invalid writename format argument. must be a str"
+    assert isinstance(
+        decomp.writename, str
+    ), "invalid write name argument. must be a str"
     assert decomp.write in [
         "",
         "cube",

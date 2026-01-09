@@ -122,26 +122,30 @@ def prop_tot(
 
     # core hamiltonian
     kin, nuc, sub_nuc, mm_pot = _h_core(mol, mm_mol, mf)
-  
-    # Nuclei interaction with pointcharges of a possible solvent
+
+    # nuclei interaction with point charges of a possible solvent
+    atom_charges = mol.atom_charges()
+    atom_coords = mol.atom_coords()
     nuc_solv = np.zeros(len(mol.atom))
     if mm_mol is not None:
+        mm_atom_charges = mm_mol.atom_charges()
+        mm_atom_coords = mm_mol.atom_coords()
         for j in range(mol.natm):
-            q2, r2 = mol.atom_charges()[j], mol.atom_coords()[j]
-            r = lib.norm(r2 - mm_mol.atom_coords(), axis=1)
-            nuc_solv[j] = q2 * np.sum(mm_mol.atom_charges() / r)
-    
-    # OpenMMPol calculation:
+            q2, r2 = atom_charges[j], atom_coords[j]
+            r = lib.norm(r2 - mm_atom_coords, axis=1)
+            nuc_solv[j] = q2 * np.sum(mm_atom_charges / r)
+
+    # extract information from OpenMMPol calculation
     ommp = False
-    ommp_pola = False
-    # Extra static contribution to h_core
-    if hasattr(mf, 'h1e_mmpol'): #
+    ommp_polarization = False
+    # extra static contribution to one-electron Hamiltonian
+    if hasattr(mf, "h1e_mmpol"):
         ommp = True
-        mm_pot = getattr(mf, 'h1e_mmpol', None).copy()                
-    #  IPD contribution to the Fock Matrix
-    if hasattr(mf, 'v_mmpol_d'): 
-        ommp_pola = True
-        mm_pot_ipd = 0.5 * getattr(mf, 'v_mmpol_d', None)
+        mm_pot = getattr(mf, "h1e_mmpol", None).copy()
+    # IPD contribution to the Fock Matrix
+    if hasattr(mf, "v_mmpol_d"):
+        ommp_polarization = True
+        mm_pot_ipd = 0.5 * getattr(mf, "v_mmpol_d", None)
 
     # fock potential
     if hasattr(mf, "vj"):
@@ -277,14 +281,28 @@ def prop_tot(
                 res[CompKeys.solvent] = _trace(mm_pot, np.sum(rdm1_atom, axis=0))
                 res[CompKeys.solvent] += nuc_solv[atom_idx]
                 if ommp:
-                    # static nuclear contribution:
-                    res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
-                    # QM-MM vdW potential:
-                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
-                    if ommp_pola:
-                        res[CompKeys.solvent] += _trace(mm_pot_ipd, np.sum(rdm1_atom, axis=0))
-                        # Polarization contribution from the potential of the IPD's at the nuclei
-                        res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
+                    # static nuclear contribution
+                    res[CompKeys.solvent] += [
+                        mf.V_mm_at_nucl[i] * atom_charges[i]
+                        for i in range(len(atom_charges))
+                    ][atom_idx]
+                    # QM-MM vdW potential
+                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom(
+                        (mf.ommp_obj)
+                    )[atom_idx]
+                    if ommp_polarization:
+                        res[CompKeys.solvent] += _trace(
+                            mm_pot_ipd, np.sum(rdm1_atom, axis=0)
+                        )
+                        # polarization contribution from the potential of the IPDs at
+                        # the nuclei
+                        res[CompKeys.solvent] += (
+                            0.5
+                            * [
+                                mf.V_pol_at_nucl[i] * atom_charges[i]
+                                for i in range(len(atom_charges))
+                            ][atom_idx]
+                        )
             if e_solvent is not None:
                 res[CompKeys.solvent] = e_solvent[atom_idx]
             # additional xc energy contribution
@@ -350,19 +368,31 @@ def prop_tot(
             if mm_pot is not None:
                 res[CompKeys.solvent] = _trace(
                     mm_pot[select], np.sum(rdm1_tot, axis=0)[select]
-                    )
+                )
                 res[CompKeys.solvent] += nuc_solv[atom_idx]
                 if ommp:
-                    # static nuclear contribution:
-                    res[CompKeys.solvent] += [mf.V_mm_at_nucl[i]*mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
-                    # QM-MM vdW potential:
-                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom((mf.ommp_obj))[atom_idx]
-                    if ommp_pola:
+                    # static nuclear contribution
+                    res[CompKeys.solvent] += [
+                        mf.V_mm_at_nucl[i] * atom_charges[i]
+                        for i in range(len(atom_charges))
+                    ][atom_idx]
+                    # QM-MM vdW potential
+                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom(
+                        (mf.ommp_obj)
+                    )[atom_idx]
+                    if ommp_polarization:
                         res[CompKeys.solvent] += _trace(
-                        mm_pot_ipd[select], np.sum(rdm1_tot, axis=0)[select]
+                            mm_pot_ipd[select], np.sum(rdm1_tot, axis=0)[select]
                         )
-                        # Polarization contribution from the potential of the IPD's at the nuclei
-                        res[CompKeys.solvent] += 0.5 * [mf.V_pol_at_nucl[i] * mol.atom_charges()[i] for i in range(len(mol.atom_charges()))][atom_idx]
+                        # polarization contribution from the potential of the IPDs at
+                        # the nuclei
+                        res[CompKeys.solvent] += (
+                            0.5
+                            * [
+                                mf.V_pol_at_nucl[i] * atom_charges[i]
+                                for i in range(len(atom_charges))
+                            ][atom_idx]
+                        )
             if e_solvent is not None:
                 res[CompKeys.solvent] = e_solvent[atom_idx]
             # additional xc energy contribution

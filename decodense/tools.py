@@ -241,7 +241,8 @@ def write_rdm1(
             # write rdm1_atom as cube file
             pyscf_tools.cubegen.density(
                 mol,
-                f"{writename}{"_" if not writename == "" else ""}atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1.cube",
+                f"{writename}{"_" if writename else ""}atom_"
+                f"{mol.atom_symbol(a).upper():s}{a:d}_rdm1.cube",
                 np.sum(rdm1_atom, axis=0),
             )
         else:
@@ -249,7 +250,7 @@ def write_rdm1(
             rdm1_atom_dict[f"atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1"] = rdm1_atom
     # write rdm1_atom dictionary to npz file
     if fmt == "numpy":
-        if not writename == "": 
+        if writename: 
             np.savez(f"{writename}.npz",**rdm1_atom_dict)
         else: 
             np.savez(f"rdm1_atom_dict.npz",**rdm1_atom_dict)
