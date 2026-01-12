@@ -24,6 +24,7 @@ class CompKeys:
     exch = "Exch."
     kin = "Kin."
     solvent = "Solv."
+    vdw = "vdw"
     nuc_att_glob = "E_ne (1)"
     nuc_att_loc = "E_ne (2)"
     nuc_att = "E_ne"

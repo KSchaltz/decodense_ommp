@@ -287,7 +287,7 @@ def prop_tot(
                         for i in range(len(atom_charges))
                     ][atom_idx]
                     # QM-MM vdW potential
-                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom(
+                    res[CompKeys.vdw] = mf.ommp_qm_helper.vdw_energy_by_atom(
                         (mf.ommp_obj)
                     )[atom_idx]
                     if ommp_polarization:
@@ -377,7 +377,7 @@ def prop_tot(
                         for i in range(len(atom_charges))
                     ][atom_idx]
                     # QM-MM vdW potential
-                    res[CompKeys.solvent] += mf.ommp_qm_helper.vdw_energy_by_atom(
+                    res[CompKeys.vdw] = mf.ommp_qm_helper.vdw_energy_by_atom(
                         (mf.ommp_obj)
                     )[atom_idx]
                     if ommp_polarization:
