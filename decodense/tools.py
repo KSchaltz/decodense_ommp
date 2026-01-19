@@ -64,7 +64,7 @@ logger.propagate = False
 
 def logger_config(verbose: int) -> None:
     """
-    this function configures the pymbe logger
+    this function configures the decodense logger
     """
     # corresponding logging level
     verbose_level = {0: 30, 1: 20, 2: 19, 3: 18, 4: 10, 5: 5}
