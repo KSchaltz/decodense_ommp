@@ -16,7 +16,7 @@ from pyscf.pbc import gto as pbc_gto
 from pyscf.pbc import scf as pbc_scf
 from pyscf.pbc.lib.kpts_helper import gamma_point
 from typing import List, Dict, Union, Optional, Tuple
-
+from .tools import logger
 
 # component keys
 class CompKeys:
@@ -24,7 +24,7 @@ class CompKeys:
     exch = "Exch."
     kin = "Kin."
     solvent = "Solv."
-    vdw = "vdw"
+    solvent_vdw = "Solv. vdW"
     nuc_att_glob = "E_ne (1)"
     nuc_att_loc = "E_ne (2)"
     nuc_att = "E_ne"
@@ -156,6 +156,10 @@ def sanity_check(
         "eda",
         "orbitals",
     ], "invalid partitioning. valid choices: `atoms` (default), `eda`, or `orbitals`"
+    if decomp.part == 'orbitals':
+        logger.warning(
+                "Warning: Only computing electronic energy"
+            )
     # NDO decomposition
     assert isinstance(decomp.ndo, bool), "invalid NDO argument. must be a bool"
     # gauge origin

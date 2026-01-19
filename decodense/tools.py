@@ -11,6 +11,7 @@ __email__ = "janus@kemi.dtu.dk"
 __status__ = "Development"
 
 import sys
+import logging
 import os
 import numpy as np
 from subprocess import Popen, PIPE
@@ -30,33 +31,46 @@ MAX_CYCLE = 100
 NATORB_THRES = 1.0e-12
 
 
-class Logger(object):
+class DecodenseLogger(logging.Logger):
+    def info2(self, msg: str, *args, **kwargs) -> None:
+        if self.isEnabledFor(logging.INFO - 1):
+            self._log(logging.INFO - 1, msg, args, **kwargs)
+
+    def info3(self, msg: str, *args, **kwargs) -> None:
+        if self.isEnabledFor(logging.INFO - 2):
+            self._log(logging.INFO - 2, msg, args, **kwargs)
+
+# get logger
+logger = DecodenseLogger("decodense_logger")
+
+# remove handlers from possible previous initialization
+if logger.hasHandlers():
+    logger.handlers.clear()
+
+# add new handler to log to stdout
+handler = logging.StreamHandler(sys.stdout)
+
+# create new formatter
+formatter = logging.Formatter("%(message)s")
+
+# add formatter to handler
+handler.setFormatter(formatter)
+
+# add handler to logger if it does not already exist
+logger.addHandler(handler)
+
+# prevent logger from propagating handlers from parent loggers
+logger.propagate = False
+
+def logger_config(verbose: int) -> None:
     """
-    this class pipes all write statements to both stdout and output_file
+    this function configures the pymbe logger
     """
+    # corresponding logging level
+    verbose_level = {0: 30, 1: 20, 2: 19, 3: 18, 4: 10, 5: 5}
 
-    def __init__(self, output_file, both=True) -> None:
-        """
-        init Logger
-        """
-        self.terminal = sys.stdout
-        self.log = open(output_file, "a")
-        self.both = both
-
-    def write(self, message) -> None:
-        """
-        define write
-        """
-        self.log.write(message)
-        if self.both:
-            self.terminal.write(message)
-
-    def flush(self) -> None:
-        """
-        define flush
-        """
-        pass
-
+    # set level for logger
+    logger.setLevel(verbose_level[verbose])
 
 def git_version() -> str:
     """
@@ -240,8 +254,7 @@ def write_rdm1(
         if fmt == "cube":
             # write rdm1_atom as cube file
             pyscf_tools.cubegen.density(
-                mol,
-                f"{writename}{"_" if writename else ""}atom_"
+                mol, f"{writename}{'_' if writename else ''}atom_"
                 f"{mol.atom_symbol(a).upper():s}{a:d}_rdm1.cube",
                 np.sum(rdm1_atom, axis=0),
             )
