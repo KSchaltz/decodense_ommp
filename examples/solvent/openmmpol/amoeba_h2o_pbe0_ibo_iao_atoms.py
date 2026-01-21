@@ -8,24 +8,24 @@ import decodense
 
 # read in molecule information from openmmpol qm file
 file = "four_water"
-with open(f'{file}_qm.xyz') as f:
+with open(f"{file}_qm.xyz") as f:
     molstr = f.read()
 
 # init molecule
 mol = gto.M(
-    atom = molstr[60:],
+    atom=molstr[60:],
     verbose=0,
     output=None,
-    basis='pcseg1', 
+    basis="pcseg1",
 )
 
 # mf calc
 mf = scf.RKS(mol)
-mf.xc = 'pbe0'
+mf.xc = "pbe0"
 mf.conv_tol = 1.0e-10
 
 # add openmmpol mm region
-mf = qmmm.add_mmpol(mf, f'{file}_si.json', use_si_qm_coord=True)
+mf = qmmm.add_mmpol(mf, f"{file}_si.json", use_si_qm_coord=True)
 
 # run mf
 mf.kernel()

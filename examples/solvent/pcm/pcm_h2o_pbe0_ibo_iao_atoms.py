@@ -23,9 +23,9 @@ mf = scf.RKS(mol)
 mf.xc = "pbe0"
 mf.conv_tol = 1.0e-10
 
-# add pcm 
+# add pcm for water
 mf = solvent.PCM(mf)
-mf.with_solvent.eps = 78.3553 # water 
+mf.with_solvent.eps = 78.3553
 
 # run mf
 mf.kernel()

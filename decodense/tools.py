@@ -40,6 +40,7 @@ class DecodenseLogger(logging.Logger):
         if self.isEnabledFor(logging.INFO - 2):
             self._log(logging.INFO - 2, msg, args, **kwargs)
 
+
 # get logger
 logger = DecodenseLogger("decodense_logger")
 
@@ -62,6 +63,7 @@ logger.addHandler(handler)
 # prevent logger from propagating handlers from parent loggers
 logger.propagate = False
 
+
 def logger_config(verbose: int) -> None:
     """
     this function configures the decodense logger
@@ -71,6 +73,7 @@ def logger_config(verbose: int) -> None:
 
     # set level for logger
     logger.setLevel(verbose_level[verbose])
+
 
 def git_version() -> str:
     """
@@ -109,7 +112,7 @@ def dim(mo_occ: Tuple[np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
 
 
 def mf_info(
-    mf: Union[scf.hf.SCF, dft.rks.KohnShamDFT]
+    mf: Union[scf.hf.SCF, dft.rks.KohnShamDFT],
 ) -> Tuple[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]]:
     """
     retrieve mf information (mo coefficients & occupations)
@@ -218,7 +221,7 @@ def write_rdm1(
     part: str,
     mo_coeff: Tuple[np.ndarray, np.ndarray],
     mo_occ: Tuple[np.ndarray, np.ndarray],
-    fmt: str, 
+    fmt: str,
     writename: str,
     weights: List[np.ndarray],
 ) -> None:
@@ -254,7 +257,8 @@ def write_rdm1(
         if fmt == "cube":
             # write rdm1_atom as cube file
             pyscf_tools.cubegen.density(
-                mol, f"{writename}{'_' if writename else ''}atom_"
+                mol,
+                f"{writename}{'_' if writename else ''}atom_"
                 f"{mol.atom_symbol(a).upper():s}{a:d}_rdm1.cube",
                 np.sum(rdm1_atom, axis=0),
             )
@@ -263,10 +267,10 @@ def write_rdm1(
             rdm1_atom_dict[f"atom_{mol.atom_symbol(a).upper():s}{a:d}_rdm1"] = rdm1_atom
     # write rdm1_atom dictionary to npz file
     if fmt == "numpy":
-        if writename: 
-            np.savez(f"{writename}.npz",**rdm1_atom_dict)
-        else: 
-            np.savez(f"rdm1_atom_dict.npz",**rdm1_atom_dict)
+        if writename:
+            np.savez(f"{writename}.npz", **rdm1_atom_dict)
+        else:
+            np.savez(f"rdm1_atom_dict.npz", **rdm1_atom_dict)
 
 
 def res_add(res_a, res_b):

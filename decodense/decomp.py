@@ -18,6 +18,7 @@ from pyscf.pbc.lib.kpts_helper import gamma_point
 from typing import List, Dict, Union, Optional, Tuple
 from .tools import logger
 
+
 # component keys
 class CompKeys:
     coul = "Coul."
@@ -58,8 +59,8 @@ class DecompCls(object):
         "write",
         "writename",
         "verbose",
-        "res",
         "unit",
+        "res",
         "charge_atom",
         "dist",
         "weights",
@@ -156,10 +157,11 @@ def sanity_check(
         "eda",
         "orbitals",
     ], "invalid partitioning. valid choices: `atoms` (default), `eda`, or `orbitals`"
-    if decomp.part == 'orbitals':
+    if decomp.part == "orbitals":
         logger.warning(
-                "Warning: Only computing electronic energy"
-            )
+            "Warning: Only computing electronic energy and does not include solvent "
+            "van der Waals contributions."
+        )
     # NDO decomposition
     assert isinstance(decomp.ndo, bool), "invalid NDO argument. must be a bool"
     # gauge origin

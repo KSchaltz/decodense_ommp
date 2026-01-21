@@ -23,13 +23,13 @@ mf = scf.RKS(mol)
 mf.xc = "pbe0"
 mf.conv_tol = 1.0e-10
 
-# add point charges
+# randomly add point charges
 np.random.seed(1)
-coords = np.random.random((5,3)) * 10
-charges = (np.arange(5) + 1.) * -.1
+coords = np.random.random((5, 3)) * 10
+charges = (np.arange(5) + 1.0) * -0.1
 mf = qmmm.mm_charge(mf, coords, charges)
 
-# run mf 
+# run mf
 mf.kernel()
 
 # occupied orbitals
