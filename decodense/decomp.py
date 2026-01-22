@@ -25,12 +25,12 @@ class CompKeys:
     exch = "Exch."
     kin = "Kin."
     solvent = "Solv."
-    solvent_vdw = "Solv. vdW"
+    solvent_vdw = "Solv. (vdW)"
     nuc_att_glob = "E_ne (1)"
     nuc_att_loc = "E_ne (2)"
     nuc_att = "E_ne"
     xc = "XC"
-    xc_nlc = "XC_nlc"
+    xc_nlc = "XC (nlc)"
     struct = "Struct."
     el = "Elect."
     tot = "Total"
@@ -159,8 +159,8 @@ def sanity_check(
     ], "invalid partitioning. valid choices: `atoms` (default), `eda`, or `orbitals`"
     if decomp.part == "orbitals":
         logger.warning(
-            "Warning: Only computing electronic energy and does not include solvent "
-            "van der Waals contributions."
+            "Warning: This partitioning only computes electronic energy and does not "
+            "include solvent van der Waals contributions."
         )
     # NDO decomposition
     assert isinstance(decomp.ndo, bool), "invalid NDO argument. must be a bool"

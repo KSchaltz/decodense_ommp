@@ -475,13 +475,11 @@ def _e_nuc(mol: gto.Mole) -> np.ndarray:
     this function returns the nuclear repulsion energy
     """
     # coordinates and charges of nuclei
-    coords = mol.atom_coords()
     charges = mol.atom_charges()
     # internuclear distances (with self-repulsion removed)
     dist = gto.inter_distance(mol)
     dist[np.diag_indices_from(dist)] = 1e200
-    e_nuc = contract("i,ij,j->i", charges, 1.0 / dist, charges) * 0.5
-    return e_nuc
+    return contract("i,ij,j->i", charges, 1.0 / dist, charges) * 0.5
 
 
 def _dip_nuc(mol: gto.Mole, gauge_origin: np.ndarray) -> np.ndarray:
